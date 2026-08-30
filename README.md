@@ -1,7 +1,7 @@
 # 📈 Sales Performance & Price Elasticity Analysis
 
 <p align="center">
-  <img src="assets/Sales-Performance-Banner.png" alt="Sales Performance and Price Elasticity Analysis Banner" width="100%">
+  <img src="assets/Image.png" alt="Sales Performance and Price Elasticity Analysis Banner" width="100%">
 </p>
 
 <p align="center">
