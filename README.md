@@ -4,11 +4,7 @@
   <img src="assets/Image.png" alt="Sales Performance and Price Elasticity Analysis Banner" width="100%">
 </p>
 
-<p align="center">
-  <strong>Driving Insights. Optimizing Profitability.</strong>
-</p>
 
-<p align="center">
 
 ![SQL](https://img.shields.io/badge/SQL-Databricks-red?logo=databricks\&logoColor=white)
 ![Power BI](https://img.shields.io/badge/Power%20BI-DAX-F2C811?logo=powerbi\&logoColor=black)
@@ -17,6 +13,53 @@
 ![Status](https://img.shields.io/badge/Status-Completed-success)
 
 </p>
+
+---
+
+
+## 🧠 30-Second Read
+
+> **R186.91M in sales. 5.28M units sold. Still a R7.12M gross loss.**
+> This project finds out why growth was not paying off — and shows exactly what to change.
+
+I analysed 3 years of daily sales data (SQL → Excel → Power BI) to answer a question most sales dashboards never ask: **is this growth actually worth having?** The answer was no — and the data shows precisely where the value was leaking and how to stop it.
+
+---
+
+## 🏆 Executive Summary
+
+| KPI                            |                 Result |
+| :----------------------------- | ---------------------: |
+| 💰 Total Sales                 |    **R186.91 Million** |
+| 📦 Total Quantity Sold         | **5.28 Million Units** |
+| 💵 Gross Profit                |     **-R7.12 Million** |
+| 📉 Gross Profit Margin         |             **-3.81%** |
+| 🏷️ Average Unit Selling Price |             **R35.40** |
+
+**Key finding:** despite substantial revenue and volume, the product recorded an overall gross loss. **High sales volume does not automatically mean high profitability** — and the data shows demand here is highly price-sensitive, meaning promotions were likely driving units at the expense of margin.
+
+---
+
+## 💡 Key Insights
+
+1. **Volume without value.** ~R186.91M in sales and 5.28M units sold still produced a net gross loss of R7.12M — revenue and unit counts were rising while profitability was not, the core disconnect this project set out to explain.
+2. **Customers are price-sensitive.** Periods of lower selling price consistently lined up with stronger demand, a signature of elastic demand — discounting moves units fast, but every point of price cut compounds against margin.
+3. **Promotions moved volume, not necessarily value.** Promotional periods look successful on a units-sold view and materially weaker on a profit-per-unit view — the two tell different stories from the same data.
+4. **Price and profit need to be watched together.** No single metric (sales, units, or price alone) explained the loss — it only became visible once price, cost, and quantity were modelled together as elasticity.
+
+---
+
+## 🎯 Business Recommendations
+
+| # | Recommendation | Expected impact |
+|---|---|---|
+| 1 | **Review pricing strategy** — ensure selling price consistently covers cost of sales | Removes the structural cause of the gross loss |
+| 2 | **Optimise promotional pricing** — test discount depths that stimulate demand without dropping below margin-safe thresholds | Keeps the demand lift from promotions without the profit leak |
+| 3 | **Monitor unit economics** — track gross profit per unit alongside sales volume, not sales volume alone | Catches value-destroying growth before it compounds |
+| 4 | **Prioritise profitable growth** — stop treating revenue and unit growth as success metrics in isolation | Reframes decision-making around margin, not vanity metrics |
+| 5 | **Build a live pricing performance dashboard** — price, quantity, margin and elasticity in one view | Turns this from a one-off finding into an ongoing early-warning system |
+
+**Bottom line for the business:** pricing is a powerful lever for demand, but without a profitability check attached, it's a lever that can pull the business in the wrong direction. The fix isn't to sell less — it's to know, in real time, which sales are actually worth making.
 
 ---
 
@@ -29,30 +72,6 @@ The objective was not simply to report sales figures, but to answer an important
 > **Does selling more units and reducing prices actually create value for the business?**
 
 Using **SQL, Excel, Power BI, and business analysis techniques**, this project investigates how changes in selling price influence customer demand and whether increased sales volume translates into improved profitability.
-
----
-
-# 🏆 Executive Summary
-
-The analysis revealed an important business challenge:
-
-| KPI                            |                 Result |
-| :----------------------------- | ---------------------: |
-| 💰 Total Sales                 |    **R186.91 Million** |
-| 📦 Total Quantity Sold         | **5.28 Million Units** |
-| 💵 Gross Profit                |     **-R7.12 Million** |
-| 📉 Gross Profit Margin         |             **-3.81%** |
-| 🏷️ Average Unit Selling Price |             **R35.40** |
-
-## 🚨 Key Finding
-
-Despite generating substantial revenue and selling millions of units, the product recorded an **overall gross loss**.
-
-This demonstrates a critical business principle:
-
-> **High sales volume does not automatically mean high profitability.**
-
-The analysis also suggests that customers are highly responsive to changes in price, meaning that promotions can increase demand—but potentially at the expense of profitability.
 
 ---
 
@@ -357,84 +376,6 @@ Price trends, promotional periods and demand response.
 
 ---
 
-# 💡 Key Insights
-
-## 🚨 High Sales Volume Did Not Translate Into Profitability
-
-The product generated approximately **R186.91 million in sales**, but recorded an overall gross loss.
-
-### Business implication:
-
-> Revenue growth should never be evaluated independently from profitability.
-
----
-
-## 📉 Customers Appear Price Sensitive
-
-The analysis identified periods where lower selling prices were associated with stronger demand.
-
-This suggests that customers are responsive to promotional pricing and that demand may be relatively elastic.
-
-### Business implication:
-
-> Pricing is a powerful lever for driving demand, but promotions should be carefully designed to protect margins.
-
----
-
-## 🔥 Promotions Can Drive Volume—but Not Always Value
-
-A successful promotion should not be measured solely by the number of units sold.
-
-The business should evaluate promotional campaigns using:
-
-* Incremental Sales
-* Incremental Quantity
-* Gross Profit
-* Gross Profit Margin
-* Profit per Unit
-
-### Recommended approach:
-
-> **Optimise promotions for profitable growth, not simply volume growth.**
-
----
-
-## 💰 Profitability Should Be the North-Star Metric
-
-The analysis highlights the importance of moving beyond vanity metrics such as total sales.
-
-A stronger decision-making framework should focus on:
-
-> **Revenue + Volume + Margin + Profitability**
-
----
-
-# 🎯 Business Recommendations
-
-Based on the analysis, I recommend the following:
-
-### 1. Review Pricing Strategy 🏷️
-
-Ensure that the selling price consistently covers the cost of sales and supports sustainable margins.
-
-### 2. Optimise Promotional Pricing 🔥
-
-Test promotional prices that stimulate demand without creating losses.
-
-### 3. Monitor Unit Economics 📦
-
-Track Gross Profit per Unit alongside sales volume.
-
-### 4. Prioritise Profitable Growth 💰
-
-Avoid strategies that increase revenue while worsening profitability.
-
-### 5. Build a Pricing Performance Dashboard 📊
-
-Continuously monitor price, quantity, margin and elasticity to support faster decisions.
-
----
-
 # 🗂️ Repository Structure
 
 ```text
@@ -522,9 +463,6 @@ It shows the ability to:
   ⭐ If you found this project interesting, feel free to explore the analysis and dashboards.
 </p>
 
-<p align="center">
-  <strong>Turning Data into Insights. Turning Insights into Action. 📊</strong>
-</p>
 
 
 
