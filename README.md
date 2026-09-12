@@ -5,7 +5,6 @@
 </p>
 
 
-
 ![SQL](https://img.shields.io/badge/SQL-Databricks-red?logo=databricks\&logoColor=white)
 ![Power BI](https://img.shields.io/badge/Power%20BI-DAX-F2C811?logo=powerbi\&logoColor=black)
 ![Excel](https://img.shields.io/badge/Excel-Dashboard-217346?logo=microsoft-excel\&logoColor=white)
