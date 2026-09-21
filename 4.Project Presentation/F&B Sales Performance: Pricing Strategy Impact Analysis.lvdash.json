@@ -1,0 +1,1025 @@
+{
+  "datasets": [
+    {
+      "name": "262fc413",
+      "displayName": "Fnb Sales Performance And Pricing Overview Dataset",
+      "queryLines": [
+        "--name sql\n",
+        "--Inspecting Dataset\n",
+        "SELECT * \n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`;\n",
+        "\n",
+        "--checking for missing values\n",
+        "SELECT\n",
+        "    COUNT(*) AS total_records,\n",
+        "    SUM(CASE WHEN `Date` IS NULL THEN 1 ELSE 0 END) AS missing_dates,\n",
+        "    SUM(CASE WHEN `Sales` IS NULL THEN 1 ELSE 0 END) AS missing_sales,\n",
+        "    SUM(CASE WHEN `Cost of Sales` IS NULL THEN 1 ELSE 0 END) AS missing_cost_of_sales,\n",
+        "    SUM(CASE WHEN `Quantity Sold` IS NULL THEN 1 ELSE 0 END) AS missing_quantity\n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`;\n",
+        "\n",
+        "--Checking for daily sales price per unit\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    `Sales`,\n",
+        "    `Quantity Sold`,\n",
+        "    ROUND(`Sales` / NULLIF(`Quantity Sold`, 0), 2) AS daily_sales_price_per_unit\n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--checking average unit sale price\n",
+        "SELECT\n",
+        "    ROUND(\n",
+        "        SUM(`Sales`) / NULLIF(SUM(`Quantity Sold`), 0),\n",
+        "        2\n",
+        "    ) AS average_unit_sales_price\n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`;\n",
+        "\n",
+        "--checking daily gross profit\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    `Sales`,\n",
+        "    `Cost of Sales`,\n",
+        "        ROUND(\n",
+        "        (`Sales` - `Cost of Sales`) / NULLIF(`Sales`, 0) * 100,\n",
+        "        2\n",
+        "    ) AS daily_gross_profit_percentage\n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--putting gross profit in rands\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    `Sales`,\n",
+        "    `Cost of Sales`,\n",
+        "        ROUND(\n",
+        "        `Sales` - `Cost of Sales`,\n",
+        "        2\n",
+        "    ) AS gross_profit_rand,\n",
+        "        ROUND(\n",
+        "        (`Sales` - `Cost of Sales`) / NULLIF(`Sales`, 0) * 100,\n",
+        "        2\n",
+        "    ) AS gross_profit_percentage\n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--checking daily gross profit per unit\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "        ROUND(\n",
+        "        (`Sales` - `Cost of Sales`) / NULLIF(`Quantity Sold`, 0),\n",
+        "        2\n",
+        "    ) AS gross_profit_per_unit\n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--checking gross profit per unit percentage\n",
+        "WITH per_unit AS (\n",
+        "  SELECT\n",
+        "    `Date`,\n",
+        "    `Sales` / NULLIF(`Quantity Sold`, 0) AS sales_price_per_unit_raw,\n",
+        "    (`Sales` - `Cost of Sales`) / NULLIF(`Quantity Sold`, 0) AS gross_profit_per_unit_raw\n",
+        "  FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`\n",
+        ")\n",
+        "SELECT\n",
+        "  `Date`,\n",
+        "  ROUND(sales_price_per_unit_raw, 2) AS sales_price_per_unit,\n",
+        "  ROUND(gross_profit_per_unit_raw, 2) AS gross_profit_per_unit,\n",
+        "  ROUND(\n",
+        "    gross_profit_per_unit_raw\n",
+        "    / NULLIF(sales_price_per_unit_raw, 0) * 100,\n",
+        "    2\n",
+        "  ) AS gross_profit_per_unit_percentage\n",
+        "FROM per_unit\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--creating a table\n",
+        "CREATE OR REPLACE TEMP VIEW sales_analysis AS\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    `Sales`,\n",
+        "    `Cost of Sales`,\n",
+        "    `Quantity Sold`,\n",
+        "        -- Unit Selling Price\n",
+        "    `Sales` / NULLIF(`Quantity Sold`, 0) AS unit_sales_price,\n",
+        "        -- Gross Profit\n",
+        "    `Sales` - `Cost of Sales` AS gross_profit,\n",
+        "        -- Gross Profit Percentage\n",
+        "    (`Sales` - `Cost of Sales`) /\n",
+        "        NULLIF(`Sales`, 0) * 100 AS gross_profit_percentage,\n",
+        "        -- Gross Profit Per Unit\n",
+        "    (`Sales` - `Cost of Sales`) /\n",
+        "        NULLIF(`Quantity Sold`, 0) AS gross_profit_per_unit\n",
+        "FROM `fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`;\n",
+        "\n",
+        "SELECT *\n",
+        "FROM sales_analysis\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--checking daily sales and quantity\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    ROUND(unit_sales_price, 2) AS unit_price,\n",
+        "    `Quantity Sold`,\n",
+        "    `Sales`\n",
+        "FROM sales_analysis\n",
+        "ORDER BY unit_sales_price ASC;\n",
+        "\n",
+        "--checking for promotion days\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    ROUND(unit_sales_price, 2) AS unit_price,\n",
+        "    `Quantity Sold`,\n",
+        "        CASE\n",
+        "        WHEN unit_sales_price <\n",
+        "             (SELECT AVG(unit_sales_price) * 0.90\n",
+        "              FROM sales_analysis)\n",
+        "        THEN 'Potential Promotion'\n",
+        "        ELSE 'Regular Price'\n",
+        "    END AS promotion_flag\n",
+        "FROM sales_analysis\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--checking previous days values\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    unit_sales_price,\n",
+        "    `Quantity Sold`,\n",
+        "        LAG(unit_sales_price) OVER (ORDER BY `Date`) AS previous_price,\n",
+        "        LAG(`Quantity Sold`) OVER (ORDER BY `Date`) AS previous_quantity\n",
+        "FROM sales_analysis\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--checking for promotion periods\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    ROUND(unit_sales_price, 2) AS price,\n",
+        "    `Quantity Sold`,\n",
+        "    gross_profit,\n",
+        "    gross_profit_percentage\n",
+        "FROM sales_analysis\n",
+        "WHERE `Date` BETWEEN '2025-01-01' AND '2025-01-31'\n",
+        "ORDER BY `Date`;\n",
+        "\n",
+        "--checking for promotion performance\n",
+        "SELECT\n",
+        "  promotion_flag,\n",
+        "  ROUND(AVG(unit_sales_price), 2) AS avg_price,\n",
+        "  ROUND(AVG(`Quantity Sold`), 0) AS avg_daily_quantity,\n",
+        "  ROUND(SUM(`Sales`), 2) AS total_sales,\n",
+        "  ROUND(SUM(gross_profit), 2) AS total_gross_profit,\n",
+        "  ROUND(SUM(gross_profit) * 100.0 / NULLIF(SUM(`Sales`), 0), 2) AS gross_profit_margin\n",
+        "FROM (\n",
+        "  SELECT\n",
+        "    *,\n",
+        "    CASE\n",
+        "      WHEN unit_sales_price < (SELECT AVG(unit_sales_price) * 0.90 FROM sales_analysis)\n",
+        "        THEN 'Potential Promotion'\n",
+        "      ELSE 'Regular Price'\n",
+        "    END AS promotion_flag\n",
+        "  FROM sales_analysis\n",
+        ")\n",
+        "GROUP BY promotion_flag;\n",
+        "\n",
+        "--checking Total Sales, Cost and Profit\n",
+        "SELECT\n",
+        "    ROUND(SUM(`Sales`), 2) AS total_sales,\n",
+        "    ROUND(SUM(`Cost of Sales`), 2) AS total_cost_of_sales,\n",
+        "    ROUND(SUM(`Sales`) - SUM(`Cost of Sales`), 2) AS total_gross_profit,\n",
+        "    ROUND(\n",
+        "        (SUM(`Sales`) - SUM(`Cost of Sales`)) /\n",
+        "        NULLIF(SUM(`Sales`), 0) * 100,\n",
+        "        2\n",
+        "    ) AS overall_gross_profit_margin\n",
+        "FROM sales_analysis;\n",
+        "\n",
+        "--checking best sales day\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    `Sales`,\n",
+        "    `Quantity Sold`,\n",
+        "    gross_profit\n",
+        "FROM sales_analysis\n",
+        "ORDER BY `Sales` DESC\n",
+        "LIMIT 10;\n",
+        "\n",
+        "--checking most profitable days\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    gross_profit,\n",
+        "    gross_profit_percentage,\n",
+        "    `Sales`\n",
+        "FROM sales_analysis\n",
+        "ORDER BY gross_profit DESC\n",
+        "LIMIT 10;\n",
+        "\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    ROUND(unit_sales_price, 2) AS unit_price,\n",
+        "    `Quantity Sold`\n",
+        "FROM sales_analysis\n",
+        "ORDER BY unit_price ASC\n",
+        "LIMIT 10;\n",
+        "\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    ROUND(unit_sales_price, 2) AS unit_price,\n",
+        "    `Quantity Sold`\n",
+        "FROM sales_analysis\n",
+        "ORDER BY `Quantity Sold` DESC\n",
+        "LIMIT 10;\n",
+        "\n",
+        "\n",
+        "SELECT\n",
+        "    `Date`,\n",
+        "    ROUND(unit_sales_price, 2) AS unit_price,\n",
+        "    `Quantity Sold`\n",
+        "FROM sales_analysis\n",
+        "ORDER BY `Quantity Sold` DESC\n",
+        ";"
+      ]
+    },
+    {
+      "name": "fnb_sales_metrics",
+      "displayName": "F&B Sales Analysis",
+      "config": {
+        "version": "1.1",
+        "source": "`fnb-sales-data`.`fnb-sales-dataset`.`fnb-sales-data-code`",
+        "dimensions": [
+          {
+            "name": "date",
+            "expr": "CAST(`Date` AS TIMESTAMP)",
+            "displayName": "Date"
+          },
+          {
+            "name": "month_year",
+            "expr": "DATE_TRUNC('MONTH', CAST(`Date` AS TIMESTAMP))",
+            "displayName": "Month"
+          },
+          {
+            "name": "day_of_week",
+            "expr": "DATE_FORMAT(CAST(`Date` AS TIMESTAMP), 'EEEE')",
+            "displayName": "Day of Week"
+          },
+          {
+            "name": "pricing_strategy",
+            "expr": "CASE WHEN (`Sales` / NULLIF(`Quantity Sold`, 0)) < 9.0 THEN 'Promotional Pricing' ELSE 'Regular Pricing' END",
+            "displayName": "Pricing Strategy",
+            "comment": "Classifies pricing as promotional (< R9 per unit) or regular"
+          }
+        ],
+        "measures": [
+          {
+            "name": "total_sales",
+            "expr": "SUM(`Sales`)",
+            "displayName": "Total Sales",
+            "format": {
+              "type": "currency",
+              "currencyCode": "ZAR",
+              "decimalPlaces": {
+                "type": "exact",
+                "places": 2.0
+              }
+            }
+          },
+          {
+            "name": "total_cost",
+            "expr": "SUM(`Cost Of Sales`)",
+            "displayName": "Total Cost",
+            "format": {
+              "type": "currency",
+              "currencyCode": "ZAR",
+              "decimalPlaces": {
+                "type": "exact",
+                "places": 2.0
+              }
+            }
+          },
+          {
+            "name": "total_quantity",
+            "expr": "SUM(`Quantity Sold`)",
+            "displayName": "Total Quantity Sold",
+            "format": {
+              "type": "number",
+              "decimalPlaces": {
+                "type": "exact",
+                "places": 0.0
+              }
+            }
+          },
+          {
+            "displayName": "Gross Profit",
+            "format": {
+              "type": "currency",
+              "currencyCode": "ZAR",
+              "decimalPlaces": {
+                "type": "exact",
+                "places": 2.0
+              }
+            },
+            "name": "gross_profit",
+            "expr": "SUM(`Sales`) - SUM(`Cost Of Sales`)",
+            "comment": "Total revenue minus total cost"
+          },
+          {
+            "displayName": "Gross Profit Margin",
+            "format": {
+              "type": "percentage",
+              "decimalPlaces": {
+                "type": "exact",
+                "places": 1.0
+              }
+            },
+            "name": "gross_profit_margin",
+            "expr": "(SUM(`Sales`) - SUM(`Cost Of Sales`)) / NULLIF(SUM(`Sales`), 0) * 100",
+            "comment": "Gross profit as a percentage of sales"
+          },
+          {
+            "name": "avg_unit_price",
+            "expr": "SUM(`Sales`) / NULLIF(SUM(`Quantity Sold`), 0)",
+            "displayName": "Avg Unit Price",
+            "format": {
+              "type": "currency",
+              "currencyCode": "ZAR",
+              "decimalPlaces": {
+                "type": "exact",
+                "places": 2.0
+              }
+            }
+          },
+          {
+            "name": "avg_daily_quantity",
+            "expr": "AVG(`Quantity Sold`)",
+            "displayName": "Avg Daily Quantity",
+            "format": {
+              "type": "number",
+              "decimalPlaces": {
+                "type": "exact",
+                "places": 0.0
+              }
+            }
+          },
+          {
+            "name": "record_count",
+            "expr": "COUNT(*)",
+            "displayName": "Days"
+          }
+        ]
+      }
+    }
+  ],
+  "pages": [
+    {
+      "name": "e9b914cd",
+      "displayName": "FNB-SALES-DASHBOARD",
+      "layout": [
+        {
+          "widget": {
+            "name": "intro_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## 📊 FNB Sales Performance Dashboard\n",
+                "\n",
+                "This dashboard analyzes your sales data to uncover the **impact of pricing strategy** on revenue and profitability. Key findings show significant differences between promotional and regular pricing periods."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "total_sales",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "measure(total_sales)",
+                      "expression": "MEASURE(`total_sales`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Total Sales Revenue"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(total_sales)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "gross_profit",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "measure(gross_profit)",
+                      "expression": "MEASURE(`gross_profit`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Total Gross Profit"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(gross_profit)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 3,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "profit_margin",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "measure(gross_profit_margin)",
+                      "expression": "MEASURE(`gross_profit_margin`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Profit Margin"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(gross_profit_margin)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 3,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "avg_price",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "measure(avg_unit_price)",
+                      "expression": "MEASURE(`avg_unit_price`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Avg Unit Price"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(avg_unit_price)",
+                  "rowNumber": 0
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 3,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "pricing_comparison",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "pricing_strategy",
+                      "expression": "`pricing_strategy`"
+                    },
+                    {
+                      "name": "measure(total_sales)",
+                      "expression": "MEASURE(`total_sales`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Performance by Pricing Strategy"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "pricing_strategy",
+                  "displayName": "pricing_strategy",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(total_sales)",
+                  "displayName": "total_sales",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "pricing_strategy",
+                  "displayName": "pricing_strategy",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "profit_by_pricing",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "pricing_strategy",
+                      "expression": "`pricing_strategy`"
+                    },
+                    {
+                      "name": "measure(gross_profit)",
+                      "expression": "MEASURE(`gross_profit`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Gross Profit by Pricing Strategy"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "pricing_strategy",
+                  "displayName": "pricing_strategy",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(gross_profit)",
+                  "displayName": "gross_profit",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "pricing_strategy",
+                  "displayName": "pricing_strategy",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 7,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "sales_trend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "monthly(month_year)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `month_year`)"
+                    },
+                    {
+                      "name": "measure(total_sales)",
+                      "expression": "MEASURE(`total_sales`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Sales Trend Over Time"
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(month_year)",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(total_sales)",
+                  "displayName": "total_sales",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 13,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "volume_by_pricing",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "pricing_strategy",
+                      "expression": "`pricing_strategy`"
+                    },
+                    {
+                      "name": "measure(total_quantity)",
+                      "expression": "MEASURE(`total_quantity`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Volume Sold by Pricing Strategy"
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "pricing_strategy",
+                  "displayName": "pricing_strategy",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(total_quantity)",
+                  "displayName": "total_quantity",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "pricing_strategy",
+                  "displayName": "pricing_strategy",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 13,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "daily_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fnb_sales_metrics",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    },
+                    {
+                      "name": "measure(total_sales)",
+                      "expression": "MEASURE(`total_sales`)"
+                    },
+                    {
+                      "name": "measure(total_cost)",
+                      "expression": "MEASURE(`total_cost`)"
+                    },
+                    {
+                      "name": "measure(gross_profit)",
+                      "expression": "MEASURE(`gross_profit`)"
+                    },
+                    {
+                      "name": "measure(gross_profit_margin)",
+                      "expression": "MEASURE(`gross_profit_margin`)"
+                    },
+                    {
+                      "name": "measure(total_quantity)",
+                      "expression": "MEASURE(`total_quantity`)"
+                    },
+                    {
+                      "name": "measure(avg_unit_price)",
+                      "expression": "MEASURE(`avg_unit_price`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Performance Breakdown"
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "date"
+                  },
+                  {
+                    "fieldName": "measure(total_sales)"
+                  },
+                  {
+                    "fieldName": "measure(total_cost)"
+                  },
+                  {
+                    "fieldName": "measure(gross_profit)"
+                  },
+                  {
+                    "fieldName": "measure(gross_profit_margin)"
+                  },
+                  {
+                    "fieldName": "measure(total_quantity)"
+                  },
+                  {
+                    "fieldName": "measure(avg_unit_price)"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 19,
+            "width": 12,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "recommendations",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Critical Business Findings\n",
+                "\n",
+                "### 🚨 **URGENT: Negative Profitability**\n",
+                "Your business is operating at a **-3.8% gross profit margin**, losing **R7.1 million** despite **R186.9M in sales**. Cost of sales (R194M) exceeds revenue.\n",
+                "\n",
+                "### 📈 **Pricing Analysis**\n",
+                "* **Average unit price: R35.40**\n",
+                "* All transactions classified as \"Regular Pricing\" (no promotional periods detected)\n",
+                "* **5.28 million units** sold over the period\n",
+                "* Monthly sales fluctuate between R2.6M and R10M\n",
+                "\n",
+                "---\n",
+                "\n",
+                "## ✅ **Immediate Action Plan**\n",
+                "\n",
+                "1. **Cost Structure Review** (URGENT)\n",
+                "   - Investigate why cost of sales exceeds revenue\n",
+                "   - Audit supplier pricing and procurement processes\n",
+                "   - Review operational inefficiencies driving costs\n",
+                "\n",
+                "2. **Pricing Strategy**\n",
+                "   - Current R35.40 average is insufficient to cover costs\n",
+                "   - Consider strategic price increase of 5-10%\n",
+                "   - Test premium product positioning\n",
+                "\n",
+                "3. **Product Mix Optimization**\n",
+                "   - Identify and eliminate loss-making items\n",
+                "   - Focus on higher-margin products\n",
+                "   - Negotiate better supplier terms\n",
+                "\n",
+                "4. **Volume vs. Margin Balance**\n",
+                "   - High volume (5.3M units) but negative margins\n",
+                "   - Quality over quantity approach needed\n",
+                "\n",
+                "5. **Operational Efficiency**\n",
+                "   - Reduce waste and spoilage in F&B operations\n",
+                "   - Optimize inventory management\n",
+                "   - Review labor costs and scheduling"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#FDFCFD"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 26,
+            "width": 12,
+            "height": 10
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#EBEBEB",
+        "dark": "#1A1A1A"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FCFCFD",
+        "dark": "#252525"
+      },
+      "widgetBorderColor": {
+        "light": "#FCFCFD",
+        "dark": "#252525"
+      },
+      "selectionColor": {
+        "light": "#2272B4",
+        "dark": "#4A9EDA"
+      },
+      "visualizationColors": [
+        "#15AFDD",
+        "#2375A8",
+        "#52A870",
+        "#C85070",
+        "#C89930",
+        "#8B5A9C",
+        "#E67E50"
+      ],
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED",
+      "widgetPadding": 16,
+      "widgetMargin": 12,
+      "widgetCornerRadius": 8,
+      "widgetShadow": 10,
+      "fontSettings": {
+        "base": {
+          "fontFamily": "Inter",
+          "fontColor": {
+            "light": "#08141A",
+            "dark": "#EBEBEB"
+          },
+          "fontSize": 13
+        },
+        "widgetTitle": {
+          "fontFamily": "Inter",
+          "fontColor": {
+            "light": "#08141A",
+            "dark": "#EBEBEB"
+          },
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "fieldTitle": {
+          "fontSize": 12,
+          "fontWeight": 500
+        },
+        "fieldValue": {
+          "fontSize": 13
+        }
+      }
+    },
+    "applyModeEnabled": false
+  }
+}
